@@ -1,11 +1,11 @@
 use std::process::ExitCode;
 
 use clap::Parser;
-use connect::{run_connect, ConnectOptions};
 use server::ServerOptions;
 
+use crate::connect::args::ConnectOptions;
+
 pub mod common;
-pub mod connect;
 pub mod server;
 
 /// Work At - Connect to the remote development server at ease
@@ -43,7 +43,7 @@ pub fn run_parsed_cmdline(cmdline: WokaArgs) -> anyhow::Result<ExitCode> {
             command: Some(Command::Connect(connect_options)),
             ..
         } => {
-            run_connect(connect_options)
+            crate::connect::run_connect(connect_options)
         }
         WokaArgs {
             command: Some(Command::Server(server_options)),

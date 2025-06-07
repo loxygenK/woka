@@ -1,6 +1,8 @@
 use std::process::ExitCode;
 
-use crate::{config::CommonConfigs, ssh::connect_server};
+use crate::{config::CommonConfigs};
+
+use super::ssh;
 
 pub struct ConnectOptions<'common> {
     pub common: &'common CommonConfigs,
@@ -21,7 +23,7 @@ pub fn run_connect(configs: &CommonConfigs, server_name: Option<&str>) -> Result
     let server = configs.server.get(target_server_name)
         .ok_or_else(|| ConnectError::ServerNotFound(target_server_name.to_string()))?;
 
-    let exit = connect_server(server)?;
+    let exit = ssh::connect_server(server)?;
 
     if let Some(code) = exit.code().and_then(|code| u8::try_from(code).ok()) {
         return Ok(code.into());
@@ -43,5 +45,5 @@ pub enum ConnectError {
     ServerNotFound(String),
 
     #[error("SSH Connection failed:\n{}", .0)]
-    SSHError(#[source] #[from] crate::ssh::SSHConnectionError),
+    SSHError(#[source] #[from] ssh::SSHConnectionError),
 }

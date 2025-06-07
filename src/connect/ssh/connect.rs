@@ -1,4 +1,4 @@
-use std::process::{Command, ExitStatus, Output, Stdio};
+use std::process::{ExitStatus, Output, Stdio};
 
 use crate::{config::Server, log};
 
