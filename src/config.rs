@@ -8,15 +8,15 @@ pub struct CommonConfigs {
 
 #[derive(Debug, Default)]
 pub struct Defaults {
-    pub server: String,
+    pub server: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Server {
     SSH(SSHServer)
 } 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SSHServer {
     pub display_name: String,
     pub trying_hostname: Vec<String>,

@@ -4,6 +4,7 @@ use crate::config::{CommonConfigs, Defaults, SSHServer, Server};
 
 #[derive(Debug, serde::Deserialize)]
 pub struct CommonOptions {
+    #[serde(default)]
     pub default: DefaultOptions,
     pub server: HashMap<String, ServerOption>
 }
@@ -23,13 +24,16 @@ fn convert_server_map(map: HashMap<String, ServerOption>) -> HashMap<String, Ser
     }).collect()
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug, Default, serde::Deserialize)]
 pub struct DefaultOptions {
-    pub server: String,
+    pub server: Option<String>,
 }
 impl From<DefaultOptions> for Defaults {
     fn from(value: DefaultOptions) -> Self {
-        Self { server: value.server }
+        Self {
+            server: value.server
+                .and_then(|server| if server.is_empty() { None } else { Some(server) })
+        }
     }
 }
 
@@ -48,7 +52,7 @@ impl From<(String, SSHServerOption)> for SSHServer {
     fn from((key, value): (String, SSHServerOption)) -> Self {
         let mut ssh_hosts = value.ssh_hosts;
 
-        if !ssh_hosts.contains(&key) {
+        if ssh_hosts.is_empty() {
             ssh_hosts.push(key.clone());
         }
 

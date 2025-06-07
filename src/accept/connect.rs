@@ -1,5 +1,8 @@
+use std::process::ExitCode;
+
 use anyhow::Context;
 
+use crate::apps::connect::run_connect as run_connect_app;
 use crate::config::CommonConfigs;
 
 use super::common::{CommonOptions, CommonOptionArgs};
@@ -14,11 +17,12 @@ pub struct ConnectOptions {
     pub server: Option<String>,
 }
 
-pub fn run_connect(connect_options: ConnectOptions) -> Result<(), anyhow::Error> {
+pub fn run_connect(connect_options: ConnectOptions) -> Result<ExitCode, anyhow::Error> {
     let common: CommonOptions = (&connect_options.commons).try_into()
         .context("Error during parsing arguments")?;
     let common: CommonConfigs = common.into();
 
-    todo!("{common:#?}");
+    run_connect_app(&common, connect_options.server.as_deref())
+        .context("Failed to connect to server")
 }
 

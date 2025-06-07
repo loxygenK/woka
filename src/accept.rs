@@ -1,3 +1,5 @@
+use std::process::ExitCode;
+
 use clap::Parser;
 use connect::{run_connect, ConnectOptions};
 use server::ServerOptions;
@@ -27,11 +29,11 @@ pub enum Command {
     Server(ServerOptions),
 }
 
-pub fn parse_and_run() -> anyhow::Result<()> {
+pub fn parse_and_run() -> anyhow::Result<ExitCode> {
     run_parsed_cmdline(WokaArgs::parse())
 }
 
-pub fn run_parsed_cmdline(cmdline: WokaArgs) -> anyhow::Result<()> {
+pub fn run_parsed_cmdline(cmdline: WokaArgs) -> anyhow::Result<ExitCode> {
     match cmdline {
         WokaArgs {
             command: None,
