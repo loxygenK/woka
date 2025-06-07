@@ -5,25 +5,42 @@ use crate::{config::CommonConfigs};
 use super::ssh;
 
 pub struct ConnectOptions<'common> {
-    pub common: &'common CommonConfigs,
+    pub configs: &'common CommonConfigs,
+    pub target: Option<&'common str>,
     pub port_forwards: Vec<PortForward>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum PortForward {
     Local(u32, u32),
     Remote(u32, u32),
 }
 
-pub fn run_connect(configs: &CommonConfigs, server_name: Option<&str>) -> Result<ExitCode, ConnectError> {
-    let target_server_name = server_name
-        .or(configs.defaults.server.as_deref())
+impl PortForward {
+    pub fn local_port(&self) -> u32 {
+        *match self {
+            PortForward::Local(local, _) => local,
+            PortForward::Remote(local, _) => local,
+        }
+    }
+
+    pub fn remote_port(&self) -> u32 {
+        *match self {
+            PortForward::Local(_, remote) => remote,
+            PortForward::Remote(_, remote) => remote,
+        }
+    }
+}
+
+pub fn run_connect(options: ConnectOptions) -> Result<ExitCode, ConnectError> {
+    let target_server_name = options.target
+        .or(options.configs.defaults.server.as_deref())
         .ok_or(ConnectError::NoServerSpecified)?;
 
-    let server = configs.server.get(target_server_name)
+    let server = options.configs.server.get(target_server_name)
         .ok_or_else(|| ConnectError::ServerNotFound(target_server_name.to_string()))?;
 
-    let exit = ssh::connect_server(server)?;
+    let exit = ssh::connect_server(server, options.port_forwards.as_slice())?;
 
     if let Some(code) = exit.code().and_then(|code| u8::try_from(code).ok()) {
         return Ok(code.into());

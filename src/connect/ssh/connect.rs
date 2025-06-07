@@ -1,25 +1,26 @@
 use std::process::{ExitStatus, Output, Stdio};
 
-use crate::{config::Server, log};
+use crate::{config::Server, connect::app::PortForward, log};
 
 use super::cmd::construct_ssh_cmd;
 
-pub fn connect_server(Server::SSH(server): &Server) -> Result<ExitStatus, SSHConnectionError> {
+pub fn connect_server(
+    Server::SSH(server): &Server,
+    port_forwards: &[PortForward],
+) -> Result<ExitStatus, SSHConnectionError> {
     if server.trying_hostname.is_empty() {
         return Err(SSHConnectionError::NoHostsConfigured);
     }
 
     log!("Connecting to server '{}'...", server.display_name);
     
-    for (index, hostname) in server.trying_hostname.iter().enumerate() {
-        if index > 0 {
-            println!();
-        }
+    for hostname in &server.trying_hostname {
         log!("  -> {hostname}");
+
+        let connection_result = try_connect_to_hostname(hostname, port_forwards); 
         
-        match try_connect_to_hostname(hostname) {
+        match connection_result {
             Ok(status) => {
-                println!();
                 log!("Connection to {} closed with {}.", hostname, status);
                 return Ok(status);
             }
@@ -40,13 +41,14 @@ pub fn connect_server(Server::SSH(server): &Server) -> Result<ExitStatus, SSHCon
     })
 }
 
-fn try_connect_to_hostname(hostname: &str) -> Result<ExitStatus, SSHConnectionError> {
-    let mut cmd = construct_ssh_cmd(hostname);
+fn try_connect_to_hostname(hostname: &str, port_forwards: &[PortForward]) -> Result<ExitStatus, SSHConnectionError> {
+    let mut cmd = construct_ssh_cmd(hostname, port_forwards);
 
     cmd.stdin(Stdio::inherit())
        .stdout(Stdio::inherit())
        .stderr(Stdio::piped());
 
+    // TODO: Important message (like port bound loss) is not catched
     let Ok(output) = cmd.output() else {
         return Err(SSHConnectionError::SSHExecutionFail);
     };
@@ -62,7 +64,7 @@ fn determine_ssh_result(output: &Output) -> Result<ExitStatus, &str> {
     };
 
     if stderr.starts_with("ssh: ") {
-        Err(&stderr)
+        Err(&stderr.trim())
     } else {
         Ok(output.status)
     }
