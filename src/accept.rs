@@ -3,7 +3,7 @@ use std::process::ExitCode;
 use clap::Parser;
 use server::ServerOptions;
 
-use crate::connect::args::ConnectOptions;
+use crate::connect::args::ConnectArgs;
 
 pub mod common;
 pub mod server;
@@ -17,13 +17,13 @@ pub struct WokaArgs {
     pub command: Option<Command>,
 
     #[clap(flatten)]
-    pub connect_options: ConnectOptions,
+    pub connect_options: ConnectArgs,
 }
 
 #[derive(Debug, clap::Subcommand)]
 pub enum Command {
     /// Connect to the server.
-    Connect(ConnectOptions),
+    Connect(ConnectArgs),
 
     /// Manage servers
     Server(ServerOptions),

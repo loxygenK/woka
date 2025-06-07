@@ -1,8 +1,8 @@
-mod file_config;
+mod schema;
 
 use std::path::PathBuf;
 
-pub use file_config::CommonOptions;
+pub use schema::CommonConfigSchema;
 
 #[derive(Debug, clap::Args)]
 pub struct CommonOptionArgs {
@@ -22,7 +22,7 @@ pub enum CommonOptionsError {
     MalformedConfigError(#[from] toml::de::Error),
 }
 
-impl TryFrom<&CommonOptionArgs> for CommonOptions {
+impl TryFrom<&CommonOptionArgs> for CommonConfigSchema {
     type Error = CommonOptionsError;
 
     fn try_from(value: &CommonOptionArgs) -> Result<Self, Self::Error> {

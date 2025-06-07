@@ -3,13 +3,13 @@ use std::collections::HashMap;
 use crate::config::{CommonConfigs, Defaults, SSHServer, Server};
 
 #[derive(Debug, serde::Deserialize)]
-pub struct CommonOptions {
+pub struct CommonConfigSchema {
     #[serde(default)]
-    pub default: DefaultOptions,
-    pub server: HashMap<String, ServerOption>
+    pub default: DefaultSchema,
+    pub server: HashMap<String, ServerSchema>
 }
-impl From<CommonOptions> for CommonConfigs {
-    fn from(value: CommonOptions) -> Self {
+impl From<CommonConfigSchema> for CommonConfigs {
+    fn from(value: CommonConfigSchema) -> Self {
         Self {
             defaults: value.default.into(),
             server: convert_server_map(value.server),
@@ -17,19 +17,19 @@ impl From<CommonOptions> for CommonConfigs {
     }
 }
 
-fn convert_server_map(map: HashMap<String, ServerOption>) -> HashMap<String, Server> {
-    map.into_iter().map(|(key, ServerOption::Ssh(value))| {
+fn convert_server_map(map: HashMap<String, ServerSchema>) -> HashMap<String, Server> {
+    map.into_iter().map(|(key, ServerSchema::Ssh(value))| {
         let server: SSHServer  = (key.clone(), value).into();
         (key, Server::SSH(server))
     }).collect()
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
-pub struct DefaultOptions {
+pub struct DefaultSchema {
     pub server: Option<String>,
 }
-impl From<DefaultOptions> for Defaults {
-    fn from(value: DefaultOptions) -> Self {
+impl From<DefaultSchema> for Defaults {
+    fn from(value: DefaultSchema) -> Self {
         Self {
             server: value.server
                 .and_then(|server| if server.is_empty() { None } else { Some(server) })
@@ -39,17 +39,17 @@ impl From<DefaultOptions> for Defaults {
 
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
-pub enum ServerOption {
-    Ssh(SSHServerOption)
+pub enum ServerSchema {
+    Ssh(SSHServerSchema)
 }
 
 #[derive(Debug, serde::Deserialize)]
-pub struct SSHServerOption {
+pub struct SSHServerSchema {
     #[serde(default)]
     pub ssh_hosts: Vec<String>,
 }
-impl From<(String, SSHServerOption)> for SSHServer {
-    fn from((key, value): (String, SSHServerOption)) -> Self {
+impl From<(String, SSHServerSchema)> for SSHServer {
+    fn from((key, value): (String, SSHServerSchema)) -> Self {
         let mut ssh_hosts = value.ssh_hosts;
 
         if ssh_hosts.is_empty() {

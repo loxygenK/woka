@@ -1,7 +1,7 @@
 use crate::accept::common::CommonOptionArgs;
 
 #[derive(Debug, clap::Args)]
-pub struct ConnectOptions {
+pub struct ConnectArgs {
     #[clap(flatten)]
     pub commons: CommonOptionArgs,
 
