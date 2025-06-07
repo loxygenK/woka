@@ -15,6 +15,11 @@ pub struct ConnectOptions {
     /// The server's name to connect (optional).
     #[clap(short, long)]
     pub server: Option<String>,
+
+    /// Port forwarding setting. Can be multiple.
+    /// host:remote or host<remote to local forwarding, host>remote to remote forwarding
+    #[clap(short, long)]
+    pub port: Vec<String>,
 }
 
 pub fn run_connect(connect_options: ConnectOptions) -> Result<ExitCode, anyhow::Error> {

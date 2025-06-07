@@ -2,6 +2,8 @@ use std::process::{Command, ExitStatus, Output, Stdio};
 
 use crate::{config::Server, log};
 
+use super::cmd::construct_ssh_cmd;
+
 pub fn connect_server(Server::SSH(server): &Server) -> Result<ExitStatus, SSHConnectionError> {
     if server.trying_hostname.is_empty() {
         return Err(SSHConnectionError::NoHostsConfigured);
@@ -39,10 +41,7 @@ pub fn connect_server(Server::SSH(server): &Server) -> Result<ExitStatus, SSHCon
 }
 
 fn try_connect_to_hostname(hostname: &str) -> Result<ExitStatus, SSHConnectionError> {
-    let mut cmd = Command::new("ssh");
-    cmd.arg("-o").arg("ConnectTimeout=10")
-       .arg("-o").arg("BatchMode=no")
-       .arg(hostname);
+    let mut cmd = construct_ssh_cmd(hostname);
 
     cmd.stdin(Stdio::inherit())
        .stdout(Stdio::inherit())

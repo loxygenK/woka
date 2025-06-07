@@ -2,6 +2,17 @@ use std::process::ExitCode;
 
 use crate::{config::CommonConfigs, ssh::connect_server};
 
+pub struct ConnectOptions<'common> {
+    pub common: &'common CommonConfigs,
+    pub port_forwards: Vec<PortForward>,
+}
+
+#[derive(Debug)]
+pub enum PortForward {
+    Local(u32, u32),
+    Remote(u32, u32),
+}
+
 pub fn run_connect(configs: &CommonConfigs, server_name: Option<&str>) -> Result<ExitCode, ConnectError> {
     let target_server_name = server_name
         .or(configs.defaults.server.as_deref())
