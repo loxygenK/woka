@@ -42,9 +42,7 @@ pub fn run_parsed_cmdline(cmdline: WokaArgs) -> anyhow::Result<ExitCode> {
         | WokaArgs {
             command: Some(Command::Connect(connect_options)),
             ..
-        } => {
-            crate::connect::run_connect(connect_options)
-        }
+        } => crate::connect::run_connect(connect_options),
         WokaArgs {
             command: Some(Command::Server(server_options)),
             ..
@@ -53,5 +51,3 @@ pub fn run_parsed_cmdline(cmdline: WokaArgs) -> anyhow::Result<ExitCode> {
         }
     }
 }
-
-

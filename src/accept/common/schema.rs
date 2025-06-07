@@ -6,7 +6,7 @@ use crate::config::{CommonConfigs, Defaults, SSHServer, Server};
 pub struct CommonConfigSchema {
     #[serde(default)]
     pub default: DefaultSchema,
-    pub server: HashMap<String, ServerSchema>
+    pub server: HashMap<String, ServerSchema>,
 }
 impl From<CommonConfigSchema> for CommonConfigs {
     fn from(value: CommonConfigSchema) -> Self {
@@ -18,10 +18,12 @@ impl From<CommonConfigSchema> for CommonConfigs {
 }
 
 fn convert_server_map(map: HashMap<String, ServerSchema>) -> HashMap<String, Server> {
-    map.into_iter().map(|(key, ServerSchema::Ssh(value))| {
-        let server: SSHServer  = (key.clone(), value).into();
-        (key, Server::SSH(server))
-    }).collect()
+    map.into_iter()
+        .map(|(key, ServerSchema::Ssh(value))| {
+            let server: SSHServer = (key.clone(), value).into();
+            (key, Server::SSH(server))
+        })
+        .collect()
 }
 
 #[derive(Debug, Default, serde::Deserialize)]
@@ -31,8 +33,13 @@ pub struct DefaultSchema {
 impl From<DefaultSchema> for Defaults {
     fn from(value: DefaultSchema) -> Self {
         Self {
-            server: value.server
-                .and_then(|server| if server.is_empty() { None } else { Some(server) })
+            server: value.server.and_then(|server| {
+                if server.is_empty() {
+                    None
+                } else {
+                    Some(server)
+                }
+            }),
         }
     }
 }
@@ -40,7 +47,7 @@ impl From<DefaultSchema> for Defaults {
 #[derive(Debug, serde::Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ServerSchema {
-    Ssh(SSHServerSchema)
+    Ssh(SSHServerSchema),
 }
 
 #[derive(Debug, serde::Deserialize)]
@@ -62,4 +69,3 @@ impl From<(String, SSHServerSchema)> for SSHServer {
         }
     }
 }
-

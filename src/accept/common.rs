@@ -47,7 +47,8 @@ fn default_config_file() -> PathBuf {
         .ok_or_else(|| std::env::current_dir())
         .expect("Could not retrieve $HOME / %userprofile% / current directory for configuration file path - specify the config file manually with '--config'");
 
-    PathBuf::from(home_dir).join(".config").join("woka").join("woka.toml")
+    PathBuf::from(home_dir)
+        .join(".config")
+        .join("woka")
+        .join("woka.toml")
 }
-
-

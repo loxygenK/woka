@@ -2,7 +2,10 @@ use crate::accept::common::CommonOptionArgs;
 use std::{num::ParseIntError, process::ExitCode, str::FromStr};
 
 use anyhow::Context as _;
-use clap::{builder::TypedValueParser, error::{ContextKind, ContextValue, ErrorKind}};
+use clap::{
+    builder::TypedValueParser,
+    error::{ContextKind, ContextValue, ErrorKind},
+};
 
 use crate::{accept::common::CommonConfigSchema, config::CommonConfigs};
 
@@ -26,40 +29,6 @@ pub struct ConnectArgs {
     )]
     pub port: Vec<app::PortForward>,
 }
-
-// #[derive(Copy, Clone)]
-// struct PortFowardParser;
-// 
-// impl TypedValueParser for PortFowardParser {
-//     type Value = app::PortForward;
-// 
-//     fn parse_ref(
-//         &self,
-//         cmd: &clap::Command,
-//         arg: Option<&clap::Arg>,
-//         value: &std::ffi::OsStr,
-//     ) -> Result<Self::Value, clap::Error> {
-//         let parse_result = value.to_str()
-//             .ok_or(PortForwardError::FormatError)
-//             .and_then(|value| value.parse());
-// 
-//         match parse_result {
-//             Ok(port_forward) => Ok(port_forward),
-//             Err(parse_error) => {
-//                 let mut err = clap::Error::new(ErrorKind::ValueValidation)
-//                     .with_cmd(cmd);
-// 
-//                 if let Some(arg) = arg {
-//                     err.insert(ContextKind::InvalidArg, ContextValue::String(arg.to_string()));
-//                 }
-//                 err.insert(ContextKind::InvalidValue, ContextValue::String(value.to_string_lossy().to_string()));
-//                 err.insert(ContextKind::Usage, ContextValue::String(format!("{parse_error}")));
-// 
-//                 Err(err)
-//             }
-//         }
-//     }
-// }
 
 impl FromStr for app::PortForward {
     type Err = PortForwardError;
@@ -91,14 +60,18 @@ impl FromStr for app::PortForward {
         // local_port \_separator
 
         let left_and_sep = segments.next().ok_or(PortForwardError::FormatError)?;
-        let remote_port = segments.next().ok_or(PortForwardError::FormatError)?.parse()?;
+        let remote_port = segments
+            .next()
+            .ok_or(PortForwardError::FormatError)?
+            .parse()?;
 
         if segments.next().is_some() {
             // There are too many segments
             return Err(PortForwardError::FormatError);
         }
 
-        let Some((local_port, separator)) = left_and_sep.split_at_checked(left_and_sep.len() - 1) else {
+        let Some((local_port, separator)) = left_and_sep.split_at_checked(left_and_sep.len() - 1)
+        else {
             // left_and_sep was not made of `local_port` and `separator`
             return Err(PortForwardError::FormatError);
         };
@@ -122,23 +95,22 @@ pub enum PortForwardError {
     #[error("The port number could not be parsed: {}", .0)]
     InvalidPortNumber(#[from] ParseIntError),
 
-    #[error("Invalid port forwarding argument:\n  The format should be 'local:remote' or 'local<remote' to local forwarding, or 'local>remote' to remote forwarding, like '3000:3000'")]
-    FormatError
+    #[error(
+        "Invalid port forwarding argument:\n  The format should be 'local:remote' or 'local<remote' to local forwarding, or 'local>remote' to remote forwarding, like '3000:3000'"
+    )]
+    FormatError,
 }
 
 pub fn run_connect(connect_options: ConnectArgs) -> Result<ExitCode, anyhow::Error> {
-    let common: CommonConfigSchema = (&connect_options.commons).try_into()
+    let common: CommonConfigSchema = (&connect_options.commons)
+        .try_into()
         .context("Error during parsing arguments")?;
     let common: CommonConfigs = common.into();
 
-    super::app::run_connect(
-        app::ConnectOptions {
-            configs: &common,
-            target: connect_options.server.as_deref(),
-            port_forwards: connect_options.port,
-        }
-    )
-        .context("Failed to connect to server")
+    super::app::run_connect(app::ConnectOptions {
+        configs: &common,
+        target: connect_options.server.as_deref(),
+        port_forwards: connect_options.port,
+    })
+    .context("Failed to connect to server")
 }
-
-

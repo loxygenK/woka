@@ -1,6 +1,6 @@
 use std::process::ExitCode;
 
-use crate::{config::CommonConfigs};
+use crate::config::CommonConfigs;
 
 use super::ssh;
 
@@ -33,11 +33,15 @@ impl PortForward {
 }
 
 pub fn run_connect(options: ConnectOptions) -> Result<ExitCode, ConnectError> {
-    let target_server_name = options.target
+    let target_server_name = options
+        .target
         .or(options.configs.defaults.server.as_deref())
         .ok_or(ConnectError::NoServerSpecified)?;
 
-    let server = options.configs.server.get(target_server_name)
+    let server = options
+        .configs
+        .server
+        .get(target_server_name)
         .ok_or_else(|| ConnectError::ServerNotFound(target_server_name.to_string()))?;
 
     let exit = ssh::connect_server(server, options.port_forwards.as_slice())?;
@@ -62,5 +66,9 @@ pub enum ConnectError {
     ServerNotFound(String),
 
     #[error("SSH Connection failed:\n{}", .0)]
-    SSHError(#[source] #[from] ssh::SSHConnectionError),
+    SSHError(
+        #[source]
+        #[from]
+        ssh::SSHConnectionError,
+    ),
 }

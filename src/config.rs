@@ -13,12 +13,11 @@ pub struct Defaults {
 
 #[derive(Debug, Clone)]
 pub enum Server {
-    SSH(SSHServer)
-} 
+    SSH(SSHServer),
+}
 
 #[derive(Debug, Clone)]
 pub struct SSHServer {
     pub display_name: String,
     pub trying_hostname: Vec<String>,
 }
-

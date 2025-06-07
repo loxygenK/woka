@@ -1,8 +1,13 @@
-use std::{io::{BufRead, BufReader}, process::{ExitStatus, Output, Stdio}};
+use std::process::ExitStatus;
 
-use crate::{config::Server, connect::app::PortForward, log};
-
-use super::cmd::construct_ssh_cmd;
+use crate::{
+    config::Server,
+    connect::{
+        app::PortForward,
+        ssh::cmd::{SSHCommand, SSHCommandError},
+    },
+    log,
+};
 
 pub fn connect_server(
     Server::SSH(server): &Server,
@@ -13,79 +18,29 @@ pub fn connect_server(
     }
 
     log!("Connecting to server '{}'...", server.display_name);
-    
+
     for hostname in &server.trying_hostname {
         log!("  -> {hostname}");
 
-        let connection_result = try_connect_to_hostname(hostname, port_forwards); 
-        
-        match connection_result {
+        let mut command = SSHCommand::new(hostname, port_forwards);
+        match command.connect() {
             Ok(status) => {
                 log!("Connection to {} closed with {}.", hostname, status);
                 return Ok(status);
             }
-            Err(SSHConnectionError::CommandFailed(_)) => {
+            Err(SSHCommandError::ConnectionFailed) => {
                 continue;
             }
-            Err(other_error) => {
-                println!("Error connecting to {}: {}", hostname, other_error);
-                return Err(other_error);
+            Err(SSHCommandError::ExecutionFailed) => {
+                return Err(SSHConnectionError::SSHExecutionFail);
             }
         }
     }
-    
+
     Err(SSHConnectionError::AllHostsFailed {
         server_name: server.display_name.clone(),
         attempted_hosts: server.trying_hostname.clone(),
     })
-}
-
-fn try_connect_to_hostname(hostname: &str, port_forwards: &[PortForward]) -> Result<ExitStatus, SSHConnectionError> {
-    let mut cmd = construct_ssh_cmd(hostname, port_forwards);
-
-    cmd.stdin(Stdio::inherit())
-       .stdout(Stdio::inherit())
-       .stderr(Stdio::piped());
-
-    let Ok(mut child) = cmd.spawn() else {
-        return Err(SSHConnectionError::SSHExecutionFail);
-    };
-
-    let Some(stderr) = child.stderr.take() else {
-        child.kill().ok();
-        return Err(SSHConnectionError::SSHExecutionFail)
-    };
-
-    let mut stderr = BufReader::new(stderr);
-
-    let mut latest_msg = String::new();
-    let mut buf = String::new();
-    while let Ok(size) = stderr.read_line(&mut buf) {
-        if size == 0 {
-            // EOF
-            break;
-        }
-        eprint!("\x1b[38;5;248m{buf}\x1b[m");
-
-        latest_msg = buf;
-        buf = String::new();
-    }
-
-    let Ok(output) = child.wait_with_output() else {
-        return Err(SSHConnectionError::SSHExecutionFail);
-    };
-
-    determine_ssh_result(&latest_msg, &output)
-        .map_err(|msg| SSHConnectionError::CommandFailed(msg.to_owned()))
-}
-
-// XXX: I really need to figure out more reliable way
-fn determine_ssh_result<'stderr>(stderr: &'stderr str, output: &Output) -> Result<ExitStatus, &'stderr str> {
-    if stderr.starts_with("ssh: ") {
-        Err(&stderr.trim())
-    } else {
-        Ok(output.status)
-    }
 }
 
 #[derive(thiserror::Error, Debug)]
@@ -109,4 +64,3 @@ pub enum SSHConnectionError {
     #[error("SSH command failed: {}", .0)]
     CommandFailed(String),
 }
-

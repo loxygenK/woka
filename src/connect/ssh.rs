@@ -1,5 +1,4 @@
-pub mod connect;
 mod cmd;
+pub mod connect;
 
 pub use connect::*;
-

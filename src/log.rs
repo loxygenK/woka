@@ -4,4 +4,3 @@ macro_rules! log {
         println!("\x1b[48;5;3;38;5;16m woka \x1b[;38;5;3m {}\x1b[m", format!($format, $($val, )*))
     };
 }
-

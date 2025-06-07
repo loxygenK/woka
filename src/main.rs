@@ -1,8 +1,8 @@
 use std::process::ExitCode;
 
 pub mod accept;
-pub mod connect;
 pub mod config;
+pub mod connect;
 pub mod log;
 
 fn main() -> ExitCode {
