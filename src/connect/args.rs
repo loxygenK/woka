@@ -28,8 +28,12 @@ pub struct ConnectArgs {
 
     /// Uses an interactive shell when executing command.
     /// Defaults to the server config, or false false if not configured
-    #[clap(short, long)]
-    pub interactive_shell: Option<bool>,
+    #[clap(short, long, conflicts_with = "no_interactive_shell")]
+    pub interactive_shell: bool,
+
+    /// Opposite of '-i' / '--interactive-shell'.
+    #[clap(short = 'I', long)]
+    pub no_interactive_shell: bool,
 
     pub executing_cmd: Vec<String>,
 }
@@ -123,12 +127,26 @@ pub fn run_connect(args: ConnectArgs) -> Result<ExitCode, anyhow::Error> {
 
     let Server::SSH(server) = server;
 
+    let interactive_shell = decide_interactive_shell_use(&args, &server.use_interactive_shell);
+
     super::app::run_connect(app::ConnectOptions {
         configs: &common,
         server,
         port_forwards: args.port,
         cmds: args.executing_cmd,
-        interactive_shell: args.interactive_shell.or(server.use_interactive_shell).unwrap_or(false),
+        interactive_shell,
     })
     .context("Failed to connect to server")
+}
+
+fn decide_interactive_shell_use(arg: &ConnectArgs, default_value: &Option<bool>) -> bool {
+    if arg.interactive_shell {
+        return true;
+    }
+
+    if arg.no_interactive_shell {
+        return false;
+    }
+
+    default_value.unwrap_or(false)
 }
