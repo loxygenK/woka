@@ -9,6 +9,7 @@ pub struct ConnectOptions<'common> {
     pub server: &'common SSHServer,
     pub port_forwards: Vec<PortForward>,
     pub cmds: Vec<String>,
+    pub login_shell: bool,
 }
 
 #[derive(Clone, Debug)]

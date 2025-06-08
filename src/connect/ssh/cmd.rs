@@ -35,7 +35,20 @@ impl SSHCommand {
             .stdout(Stdio::inherit())
             .stderr(Stdio::piped());
 
-        cmd.args(&option.cmds);
+        if option.login_shell {
+            let escaped = option
+                .cmds
+                .join(" ")
+                .replace(r"\", r"\\")
+                .replace(r"'", r"\'");
+
+            cmd.arg("$SHELL")
+                .arg("-l")
+                .arg("-c")
+                .arg(format!("'{escaped}'"));
+        } else {
+            cmd.args(&option.cmds);
+        }
 
         Self(cmd)
     }
