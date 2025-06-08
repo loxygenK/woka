@@ -42,9 +42,9 @@ pub fn run_connect(options: ConnectOptions) -> Result<ExitCode, ConnectError> {
     }
 
     if exit.success() {
-        return Ok(ExitCode::SUCCESS);
+        Ok(ExitCode::SUCCESS)
     } else {
-        return Ok(ExitCode::FAILURE);
+        Ok(ExitCode::FAILURE)
     }
 }
 

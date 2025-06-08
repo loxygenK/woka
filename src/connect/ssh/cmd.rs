@@ -55,8 +55,6 @@ impl SSHCommand {
             }
         }
 
-        println!("{:?}", cmd.get_args());
-
         Self(cmd)
     }
 

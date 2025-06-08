@@ -44,7 +44,7 @@ fn default_config_file() -> PathBuf {
     let home_dir = None
         .or_else(|| std::env::var_os("HOME"))
         .or_else(|| std::env::var_os("USERPROFILE"))
-        .ok_or_else(|| std::env::current_dir())
+        .ok_or_else(std::env::current_dir)
         .expect("Could not retrieve $HOME / %userprofile% / current directory for configuration file path - specify the config file manually with '--config'");
 
     PathBuf::from(home_dir)

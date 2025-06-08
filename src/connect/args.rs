@@ -44,9 +44,8 @@ impl FromStr for app::PortForward {
     ///        e.g.) "3000:3000", "5432<54320"
     ///   - \d+>\d+              .... Remote port forwarding to the specific port number
     ///        e.g.) "8080>80"
-
     fn from_str(str: &str) -> Result<Self, Self::Err> {
-        if str.chars().all(|char| char.is_digit(10)) {
+        if str.chars().all(|char| char.is_ascii_digit()) {
             // [0-9]^
             let port_num = u32::from_str(str)?;
             return Ok(Self::Local(port_num, port_num));
@@ -123,11 +122,6 @@ pub fn run_connect(args: ConnectArgs) -> Result<ExitCode, anyhow::Error> {
         .context("No such server is configured")?;
 
     let Server::SSH(server) = server;
-
-    println!(
-        "{}",
-        args.interactive_shell.or(server.use_interactive_shell).unwrap_or(false)
-    );
 
     super::app::run_connect(app::ConnectOptions {
         configs: &common,
