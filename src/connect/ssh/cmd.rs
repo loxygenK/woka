@@ -13,7 +13,8 @@ impl SSHCommand {
         cmd.arg("-o")
             .arg("ConnectTimeout=10")
             .arg("-o")
-            .arg("BatchMode=no");
+            .arg("BatchMode=no")
+            .arg("-t");
 
         for port_forward in &option.port_forwards {
             let port_forward_str = format!(
