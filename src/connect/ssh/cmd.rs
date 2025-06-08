@@ -46,7 +46,7 @@ impl SSHCommand {
 
                 cmd.arg("exec")
                     .arg("$SHELL")
-                    .arg("-i")
+                    .arg("-li")
                     .arg("-c")
                     // .arg(format!("'{escaped}'"));
                     .arg(format!("'{}'", option.cmds.join(" ")));
