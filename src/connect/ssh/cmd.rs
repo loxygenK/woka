@@ -35,20 +35,26 @@ impl SSHCommand {
             .stdout(Stdio::inherit())
             .stderr(Stdio::piped());
 
-        if option.login_shell {
-            let escaped = option
-                .cmds
-                .join(" ")
-                .replace(r"\", r"\\")
-                .replace(r"'", r"\'");
+        if !option.cmds.is_empty() {
+            if option.login_shell {
+                // TODO: use `shell-escape` crate for this
+                // let escaped = option
+                //     .cmds
+                //     .join(" ")
+                //     .replace(r"\", r"\\")
+                //     .replace(r"'", r"\'");
 
-            cmd.arg("$SHELL")
-                .arg("-l")
-                .arg("-c")
-                .arg(format!("'{escaped}'"));
-        } else {
-            cmd.args(&option.cmds);
+                cmd.arg("$SHELL")
+                    .arg("-l")
+                    .arg("-c")
+                    // .arg(format!("'{escaped}'"));
+                    .arg(format!("'{}'", option.cmds.join(" ")));
+            } else {
+                cmd.args(&option.cmds);
+            }
         }
+
+        println!("{:?}", cmd.get_args());
 
         Self(cmd)
     }

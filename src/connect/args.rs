@@ -26,9 +26,10 @@ pub struct ConnectArgs {
     )]
     pub port: Vec<app::PortForward>,
 
-    /// Uses a full login shell when executing command
+    /// Uses a full login shell when executing command. Defaults to the server config, orfalse
+    /// false if not configured
     #[clap(short, long)]
-    pub login_shell: bool,
+    pub login_shell: Option<bool>,
 
     pub executing_cmd: Vec<String>,
 }
@@ -128,7 +129,7 @@ pub fn run_connect(args: ConnectArgs) -> Result<ExitCode, anyhow::Error> {
         server,
         port_forwards: args.port,
         cmds: args.executing_cmd,
-        login_shell: args.login_shell,
+        login_shell: args.login_shell.or(server.use_login_shell).unwrap_or(false),
     })
     .context("Failed to connect to server")
 }
