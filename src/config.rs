@@ -20,5 +20,5 @@ pub enum Server {
 pub struct SSHServer {
     pub display_name: String,
     pub trying_hostname: Vec<String>,
-    pub use_login_shell: Option<bool>,
+    pub use_interactive_shell: Option<bool>,
 }

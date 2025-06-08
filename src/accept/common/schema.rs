@@ -55,7 +55,7 @@ pub struct SSHServerSchema {
     #[serde(default)]
     pub ssh_hosts: Vec<String>,
 
-    pub use_login_shell: Option<bool>,
+    pub use_interactive_shell: Option<bool>,
 }
 impl From<(String, SSHServerSchema)> for SSHServer {
     fn from((key, value): (String, SSHServerSchema)) -> Self {
@@ -68,7 +68,7 @@ impl From<(String, SSHServerSchema)> for SSHServer {
         Self {
             display_name: key,
             trying_hostname: ssh_hosts,
-            use_login_shell: value.use_login_shell,
+            use_interactive_shell: value.use_interactive_shell,
         }
     }
 }

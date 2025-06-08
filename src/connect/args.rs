@@ -26,10 +26,10 @@ pub struct ConnectArgs {
     )]
     pub port: Vec<app::PortForward>,
 
-    /// Uses a full login shell when executing command. Defaults to the server config, orfalse
-    /// false if not configured
+    /// Uses an interactive shell when executing command.
+    /// Defaults to the server config, or false false if not configured
     #[clap(short, long)]
-    pub login_shell: Option<bool>,
+    pub interactive_shell: Option<bool>,
 
     pub executing_cmd: Vec<String>,
 }
@@ -124,12 +124,17 @@ pub fn run_connect(args: ConnectArgs) -> Result<ExitCode, anyhow::Error> {
 
     let Server::SSH(server) = server;
 
+    println!(
+        "{}",
+        args.interactive_shell.or(server.use_interactive_shell).unwrap_or(false)
+    );
+
     super::app::run_connect(app::ConnectOptions {
         configs: &common,
         server,
         port_forwards: args.port,
         cmds: args.executing_cmd,
-        login_shell: args.login_shell.or(server.use_login_shell).unwrap_or(false),
+        interactive_shell: args.interactive_shell.or(server.use_interactive_shell).unwrap_or(false),
     })
     .context("Failed to connect to server")
 }

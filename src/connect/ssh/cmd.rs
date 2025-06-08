@@ -36,7 +36,7 @@ impl SSHCommand {
             .stderr(Stdio::piped());
 
         if !option.cmds.is_empty() {
-            if option.login_shell {
+            if option.interactive_shell {
                 // TODO: use `shell-escape` crate for this
                 // let escaped = option
                 //     .cmds
@@ -44,8 +44,9 @@ impl SSHCommand {
                 //     .replace(r"\", r"\\")
                 //     .replace(r"'", r"\'");
 
-                cmd.arg("$SHELL")
-                    .arg("-l")
+                cmd.arg("exec")
+                    .arg("$SHELL")
+                    .arg("-i")
                     .arg("-c")
                     // .arg(format!("'{escaped}'"));
                     .arg(format!("'{}'", option.cmds.join(" ")));
