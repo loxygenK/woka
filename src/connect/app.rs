@@ -1,13 +1,14 @@
 use std::process::ExitCode;
 
-use crate::config::CommonConfigs;
+use crate::config::{CommonConfigs, SSHServer};
 
 use super::ssh;
 
 pub struct ConnectOptions<'common> {
     pub configs: &'common CommonConfigs,
-    pub target: Option<&'common str>,
+    pub server: &'common SSHServer,
     pub port_forwards: Vec<PortForward>,
+    pub cmds: Vec<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -33,18 +34,7 @@ impl PortForward {
 }
 
 pub fn run_connect(options: ConnectOptions) -> Result<ExitCode, ConnectError> {
-    let target_server_name = options
-        .target
-        .or(options.configs.defaults.server.as_deref())
-        .ok_or(ConnectError::NoServerSpecified)?;
-
-    let server = options
-        .configs
-        .server
-        .get(target_server_name)
-        .ok_or_else(|| ConnectError::ServerNotFound(target_server_name.to_string()))?;
-
-    let exit = ssh::connect_server(server, options.port_forwards.as_slice())?;
+    let exit = ssh::connect_server(&options)?;
 
     if let Some(code) = exit.code().and_then(|code| u8::try_from(code).ok()) {
         return Ok(code.into());

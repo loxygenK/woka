@@ -1,28 +1,24 @@
 use std::process::ExitStatus;
 
 use crate::{
-    config::Server,
     connect::{
-        app::PortForward,
+        app::ConnectOptions,
         ssh::cmd::{SSHCommand, SSHCommandError},
     },
     log,
 };
 
-pub fn connect_server(
-    Server::SSH(server): &Server,
-    port_forwards: &[PortForward],
-) -> Result<ExitStatus, SSHConnectionError> {
-    if server.trying_hostname.is_empty() {
+pub fn connect_server(option: &ConnectOptions) -> Result<ExitStatus, SSHConnectionError> {
+    if option.server.trying_hostname.is_empty() {
         return Err(SSHConnectionError::NoHostsConfigured);
     }
 
-    log!("Connecting to server '{}'...", server.display_name);
+    log!("Connecting to server '{}'...", option.server.display_name);
 
-    for hostname in &server.trying_hostname {
+    for hostname in &option.server.trying_hostname {
         log!("  -> {hostname}");
 
-        let mut command = SSHCommand::new(hostname, port_forwards);
+        let mut command = SSHCommand::new(hostname, option);
         match command.connect() {
             Ok(status) => {
                 log!("Connection to {} closed with {}.", hostname, status);
@@ -38,8 +34,8 @@ pub fn connect_server(
     }
 
     Err(SSHConnectionError::AllHostsFailed {
-        server_name: server.display_name.clone(),
-        attempted_hosts: server.trying_hostname.clone(),
+        server_name: option.server.display_name.clone(),
+        attempted_hosts: option.server.trying_hostname.clone(),
     })
 }
 

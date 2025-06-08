@@ -3,19 +3,19 @@ use std::{
     process::{Command, ExitStatus, Stdio},
 };
 
-use crate::connect::app::PortForward;
+use crate::connect::app::{ConnectOptions, PortForward};
 
 pub struct SSHCommand(Command);
 
 impl SSHCommand {
-    pub fn new(hostname: &str, port_forwards: &[PortForward]) -> Self {
+    pub fn new(hostname: &str, option: &ConnectOptions) -> Self {
         let mut cmd = Command::new("ssh");
         cmd.arg("-o")
             .arg("ConnectTimeout=10")
             .arg("-o")
             .arg("BatchMode=no");
 
-        for port_forward in port_forwards {
+        for port_forward in &option.port_forwards {
             let port_forward_str = format!(
                 "{}:localhost:{}",
                 port_forward.local_port(),
@@ -33,6 +33,8 @@ impl SSHCommand {
         cmd.stdin(Stdio::inherit())
             .stdout(Stdio::inherit())
             .stderr(Stdio::piped());
+
+        cmd.args(&option.cmds);
 
         Self(cmd)
     }

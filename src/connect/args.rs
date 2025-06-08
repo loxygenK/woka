@@ -1,11 +1,7 @@
-use crate::accept::common::CommonOptionArgs;
+use crate::{accept::common::CommonOptionArgs, config::Server};
 use std::{num::ParseIntError, process::ExitCode, str::FromStr};
 
 use anyhow::Context as _;
-use clap::{
-    builder::TypedValueParser,
-    error::{ContextKind, ContextValue, ErrorKind},
-};
 
 use crate::{accept::common::CommonConfigSchema, config::CommonConfigs};
 
@@ -28,6 +24,8 @@ pub struct ConnectArgs {
         value_parser = clap::value_parser!(app::PortForward)
     )]
     pub port: Vec<app::PortForward>,
+
+    pub executing_cmd: Vec<String>,
 }
 
 impl FromStr for app::PortForward {
@@ -101,16 +99,30 @@ pub enum PortForwardError {
     FormatError,
 }
 
-pub fn run_connect(connect_options: ConnectArgs) -> Result<ExitCode, anyhow::Error> {
-    let common: CommonConfigSchema = (&connect_options.commons)
+pub fn run_connect(args: ConnectArgs) -> Result<ExitCode, anyhow::Error> {
+    let common: CommonConfigSchema = (&args.commons)
         .try_into()
         .context("Error during parsing arguments")?;
     let common: CommonConfigs = common.into();
 
+    let target_server_name = args
+        .server
+        .as_ref()
+        .or(common.defaults.server.as_ref())
+        .context("No server is specified")?;
+
+    let server = common
+        .server
+        .get(target_server_name)
+        .context("No such server is configured")?;
+
+    let Server::SSH(server) = server;
+
     super::app::run_connect(app::ConnectOptions {
         configs: &common,
-        target: connect_options.server.as_deref(),
-        port_forwards: connect_options.port,
+        server,
+        port_forwards: args.port,
+        cmds: args.executing_cmd,
     })
     .context("Failed to connect to server")
 }
