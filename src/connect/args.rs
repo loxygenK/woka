@@ -8,6 +8,7 @@ use crate::{accept::common::CommonConfigSchema, config::CommonConfigs};
 use super::app;
 
 #[derive(Debug, clap::Args)]
+#[clap(trailing_var_arg = true)]
 pub struct ConnectArgs {
     #[clap(flatten)]
     pub commons: CommonOptionArgs,
